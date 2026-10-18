@@ -100,7 +100,11 @@
 ├── README.md
 ├── LICENSE                         MIT + 独立研究声明
 ├── docs/
-│   └── 02-技术路线图.md            四阶段计划、判定标准、已知硬约束
+│   ├── 02-技术路线图.md            四阶段计划、判定标准、已知硬约束
+│   └── 03-内核模块路线图.md         阶段3：工具链已验证，P0-P4 工程计划
+├── kernel/                         内核模块（工具链已验证可编译可加载）
+│   ├── mx450_probe.c
+│   └── Makefile
 ├── findings/                       逐日实测记录（append-only，不修改历史）
 │   ├── 2026-10-18-阶段1-寄存器调查.md
 │   ├── 2026-10-18-阶段1-补记-TC计数查询.md
@@ -212,7 +216,9 @@ gcc -O2 -o /tmp/read_tc_count tools/read_tc_count.c && sudo /tmp/read_tc_count
 - [ ] ~~定位 Turing 的 Tensor Core 限速机制~~ → **控制点不在软件可及范围**
 - [x] **证否**：/dev/mem 被 STRICT_DEVMEM 拒绝；BAR1 256MB 全零（D3cold）
 - [x] **软件层九条路径全部闭合**（见 findings/阶段2-补记-显存访问闭合.md）
-- [ ] 驱动级内核模块（需月级开发，且微码受 FWSEC 签名保护无法替换）
+- [x] **内核模块工具链验证通过**：编译成功 + 加载成功（`mx450_probe.ko`）
+- [x] 确认 nvidia 内部符号为 local 未导出（需 kprobe 绕过 kallsyms_lookup_name）
+- [ ] 驱动级内核模块 P0-P4（见 docs/03，预估 1.5–3 个月）
 - [ ] 硬件层测量（逻辑分析仪 / 去盖显微分析）—— 超出软件研究范畴
 
 ## 许可
