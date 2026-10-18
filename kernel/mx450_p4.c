@@ -36,7 +36,15 @@ module_param(dump_bytes, uint, 0444);
 static char *dump_path = "/vol1/ganlin/vram/fecs_imem.bin";
 module_param(dump_path, charp, 0444);
 
-#define FECS_OFF    0x409000UL
+/* Falcon 实例基址：
+ *   0x409000 = FECS（IMEM 32KB）
+ *   0x41A000 = GPCCS（IMEM 16KB）
+ * 两者均在 GR 段内，HWCFG1 均为 core_rev=6 / security_model=2 (LS)
+ */
+static unsigned long falcon_base = 0x409000UL;
+module_param(falcon_base, ulong, 0444);
+
+#define FECS_OFF    falcon_base
 #define R_CPUCTL    0x100
 #define R_HWCFG     0x108
 #define R_DMACTL    0x10c
@@ -74,7 +82,7 @@ static void probe(void)
     u32 bootvec = rd(R_BOOTVEC);
     int i;
 
-    pr_info("mx450_p4: === FECS Falcon @0x409000 (driver running) ===\n");
+    pr_info("mx450_p4: === Falcon @0x%lx (driver running) ===\n", falcon_base);
     pr_info("mx450_p4: CPUCTL  (0x100) = 0x%08x  started=%u halted=%u\n",
             cpuctl, (cpuctl >> 1) & 1, (cpuctl >> 4) & 1);
     pr_info("mx450_p4: BOOTVEC (0x104) = 0x%08x\n", bootvec);
