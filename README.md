@@ -107,7 +107,8 @@
 │   ├── 2026-10-18-阶段1-补记2-ioctl通道.md
 │   ├── 2026-10-18-阶段1-补记4-BIOS分析.md
 │   ├── 2026-10-18-阶段1-补记5-GSP-vBIOS证书验证.md
-│   └── 2026-10-18-阶段2-GSP固件逆向.md   ← 双层 ELF 解析、芯片分派、私有 CSR
+│   ├── 2026-10-18-阶段2-GSP固件逆向.md   ← 双层 ELF 解析、芯片分派、私有 CSR
+│   └── 2026-10-18-阶段2-补记-显存访问闭合.md
 ├── refs/                           NVIDIA 官方头文件（MIT 许可，原样引用）
 │   ├── dev_fuse.h  dev_fbpa.h  dev_gsp.h
 │   ├── cl0080.h  nvos.h  nv_escape.h  nvstatus.h
@@ -209,6 +210,9 @@ gcc -O2 -o /tmp/read_tc_count tools/read_tc_count.c && sudo /tmp/read_tc_count
 - [x] **证否**：Ampere 的 PLM/SS0/SS1 机制在 Turing 固件中完全不存在（8 个地址零命中）
 - [x] **证否**：Turing 的 FECS/GPCCS 微码不在文件系统，固化于 GPU 内部
 - [ ] ~~定位 Turing 的 Tensor Core 限速机制~~ → **控制点不在软件可及范围**
+- [x] **证否**：/dev/mem 被 STRICT_DEVMEM 拒绝；BAR1 256MB 全零（D3cold）
+- [x] **软件层九条路径全部闭合**（见 findings/阶段2-补记-显存访问闭合.md）
+- [ ] 驱动级内核模块（需月级开发，且微码受 FWSEC 签名保护无法替换）
 - [ ] 硬件层测量（逻辑分析仪 / 去盖显微分析）—— 超出软件研究范畴
 
 ## 许可
