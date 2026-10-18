@@ -1,0 +1,15 @@
+# 参考资料（仅链接，不含第三方代码）
+refs/nvidia-swref/*.h
+refs/*.tar.gz
+
+# 实测原始输出
+findings/raw/*
+
+# Python
+__pycache__/
+*.pyc
+*.pt
+*.safetensors
+
+# 日志
+*.log
