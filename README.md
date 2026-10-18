@@ -1,17 +1,18 @@
 # MX450 (TU117) Tensor Core 逆向研究
 
+**简体中文** | [繁體中文](README.zh-TW.md) | [English](README.en.md)
+
 > 查清 NVIDIA GeForce MX450（TU117M）上 Tensor Core 被降速至理论值 5–10% 的机制，
 > 并系统性地探明这台机器在固件/驱动栈上的所有可访问边界。
 >
-> **状态：三条高层路径已全部探底 · 未实现解锁 · 结论以实测数据为准**
+> **状态：公开资料可达的边界已全部探明 · 未实现解锁 · 结论以实测数据为准**
 
 ---
 
 ## 一句话结论
 
-**这块卡上确实存在一个被锁住的算力空间（Tensor Core 有指令、能执行、但吞吐只有理论值的 5–10%），
-而这台机器用三层机制把这个空间封住了：GPU 无独立固件、系统 BIOS 受 Boot Guard 加密、
-用户态驱动 API 逐层裁剪。**
+**这块卡上确实存在一个被锁住的算力空间（Tensor Core 有指令、能执行、但吞吐只有理论值的 5–10%）。
+这台机器用五层机制把它封住了，本次研究逐一验证并绕过了其中四层——第五层是 NVIDIA 从未公开的寄存器语义。**
 
 ---
 
@@ -28,198 +29,180 @@
 
 **TC 指令存在、能编译、能执行、不报错 —— 但比不用 TC 还慢 5–6 倍。**
 
-这不是「没有 Tensor Core」，而是「有，且被压到几乎不可用」。
+---
 
-## 2. 四条互证证据
+## 2. 五层封锁与突破结果
 
-| # | 证据 | 方法 |
-|---|---|---|
-| 1 | 生成的是**真张量指令**，不是 FMA 展开 | `ptxas -arch=sm_75` 编译后对比 `.text`：mma 版与 ffma 版同为 896 B / 56 条，但 opcode 指纹截然不同（ffma 版 `2595×32`；mma 版 `572×8 + 2375×6 + 2328×6…`） |
-| 2 | 硬件**能执行**该指令 | 运行不抛非法指令，结果正确 |
-| 3 | 吞吐只有理论值 5–10%，且**低于纯 FFMA** | 8 路独立累加器 + 8 warp + 2048 blocks 压测，三次运行恒为 0.60 TFLOPS，零抖动 |
-| 4 | **NVIDIA 自家 cuBLAS 同样如此** | `CUBLAS_LOGINFO_DBG` 显示选择 `TENSOR_OP(99)`，实测 0.32 TFLOPS，比 FP32 慢 6.4 倍 |
-
-**旁证**：`NV_PMC_BOOT_0 = 0x167000a1` → chipset `0x167` = TU117（读取方式见 `tools/regs_peek.sh`）。
-
-## 3. 三条路径的探底结果
-
-| 路线 | 手段 | 结果 | 卡点性质 |
+| # | 封锁层 | 常规认知 | 本次结果 |
 |---|---|---|---|
-| **A** | CUPTI metric 枚举 | `cuptiDeviceEnumMetrics -> rc=38`，0 个 metric；写入 `NVreg_RestrictProfilingToAdminUsers=0` 并重载驱动后**仍为 rc=38** | 库/平台限制，**已排除权限因素** |
-| **B** | `NV2080_CTRL_GR_GET_INFO` 私有 ioctl | 通道打通（`hClient=0xc1d00063`），`DEVICE_0/SUBDEVICE_0` 返回占位句柄 `0xcaf0xxxx`，`GR_GET_INFO` 全部 `status=31` | 驱动对象模型隔离 |
-| **C** | 系统 BIOS dump → 提取 vBIOS | flashrom 只读导出 24 MB；**无 `VFCT` 表、无 PCIR/`NVIDIA`/`TU117` 字符串、无 LZMA/Tiano 压缩头**；`0x800000` 起为密文 | **Intel Boot Guard 签名加密** |
+| ① | **硬件层**：GPU 无独立 SPI Flash | 无法刷 vBIOS | ❌ 无法突破（物理事实） |
+| ② | **系统固件**：Intel Boot Guard 签名加密 | 无法解析 BIOS | ❌ 无法突破（需厂商私钥） |
+| ③ | **GPU 固件**：GSP FWSEC 证书链验证 | 无法修改微码 | ❌ 无法突破（需 NVIDIA 私钥） |
+| ④ | **驱动层**：NVML / CUPTI / 私有 ioctl 逐层裁剪 | 无法读取底层 | ✅ **部分突破**（PRAMIN 通道） |
+| ⑤ | **寄存器语义**：GPC/TPC 偏移未公开 | — | ⚠️ **未解**（信息不存在） |
 
-详细过程见 `findings/`。
+---
 
-## 4. 这台机器的四层防线
+## 3. 已证实的 21 条硬事实
 
-```
-┌─ ① 硬件层 ───────────────────────────────────────────┐
-│ GPU 无独立 SPI Flash                                  │
-│   卸载驱动后 PCI ROM BAR 返回 EIO（0 字节）            │
-├─ ② 固件层（系统）───────────────────────────────────┤
-│ Intel Boot Guard：BIOS 关键区域签名 + 加密            │
-│   24 MB dump 中无 VFCT 表、无 _ROM 方法、无明文 PCIR   │
-├─ ③ 固件层（GPU）────────────────────────────────────┤
-│ GSP FWSECLIC：vBIOS 证书链 + 镜像签名 + 哈希树验证    │
-│   → 固件内实测到 VERIFY_CERT_VERIFY_FAIL /           │
-│     VERIFY_BIOS_SIG_FAIL / VERIFY_HAT_FAIL 等错误码   │
-│   → 改一个字节即被拒绝加载                            │
-├─ ④ 驱动层 ───────────────────────────────────────────┤
-│ NVML 不暴露 TC 计数                                   │
-│ CUPTI metric 枚举 rc=38                               │
-│ 私有 ioctl 对象级隔离（占位句柄 0xcaf0xxxx）          │
-└──────────────────────────────────────────────────────┘
-```
-
-**四层，四种不同的技术手段，每一层单独就足以封死一条路径。**
-
-| 要改的东西 | 拦路的那一层 | 可否绕过 |
+| # | 事实 | 证据 |
 |---|---|---|
-| vBIOS 镜像（devinit / 限速配置） | ③ GSP 证书验证 | 仅可能通过加载器时序漏洞（Falcon 类），需自研 |
-| 系统 BIOS 中的 VGA 模块 | ② Boot Guard | 需要 Intel/联想私钥，**不可能** |
-| 运行时寄存器（SS/PLM 类） | ④ 驱动对象模型 + ③ PLM 权限 | 需先知道 Turing 的寄存器地址（**未知**） |
-| 显存容量 | 硬件（颗粒焊死） | **不可能** |
+| 1 | TC 存在但被限速至理论值 5% | 手写 PTX 0.60 vs 理论 6–12；cuBLAS 同现象 |
+| 2 | GSP 固件不含 TC 控制逻辑 | 双层 ELF 反汇编，8 个 Ampere 寄存器地址零命中 |
+| 3 | vBIOS 受 FWSEC 证书链保护 | 固件内 8 个 `VERIFY_*` 错误码 |
+| 4 | BAR1「仅映射 16MB」可绕过 | PRAMIN 通道，写-读回验证通过 |
+| 5 | P2P「消费级 EINVAL」可绕过 | 不走 P2P，直走 PRAMIN |
+| 6 | 驱动运行时 BAR0 可访问 | 内核模块 `ioremap` |
+| 7 | 显存可读 | 32 MB dump，MD5 可校验 |
+| 8 | 显存不含 Falcon 微码 | Kepler 微码签名零命中 |
+| 9 | FECS Falcon 基址 = `0x409000` | 寄存器实测 |
+| 10 | `HWCFG1` 位于 `+0x12c`（非 `+0x10c`） | 源码确认 |
+| 11 | **FECS 运行在 LIGHT SECURE 模式** | `security_model = 2`（非 HS 黑箱） |
+| 12 | **FECS 微码可完整读取** | 32 KB 全量落盘 |
+| 13 | 微码与 gk20a 同源结构 | 7 字节签名 `00fe0400bda47e` 匹配 |
+| 14 | 入口 = 设置栈顶 + `lcall main` + `exit` | 反汇编确认 |
+| 15 | ISA 为 fuc6 | `core_rev = 6` |
+| 16 | 449 条寄存器写入，地址 100% 解析 | 静态分析 |
+| 17 | 379 次落在 `0x20000–0x2FFFF` 段 | 分段统计 |
+| 18 | **该段语义未知** | 三条验证路线均失败 |
+| 19 | PGRAPH 在 `0x400000` | envytools rnndb 权威定义 |
+| 20 | 微码不可修改 | FWSEC 签名验证 |
+| 21 | 显存 1.68 GB 不可变 | 物理焊死 |
 
-## 5. 参考项目与本项目的定位差异
+---
 
-| 项目 | 它做到了什么 | 为什么本机不适用 |
+## 4. 关键突破：如何读出 FECS 微码
+
+五道锁逐一打开：
+
+| 锁 | 常规认知 | 绕过方法 |
 |---|---|---|
-| [`cmpunlocker`](https://github.com/amoghmunikote/cmpunlocker) | CMP 170HX（GA100）解锁 64–80 GB HBM2e、恢复 SM 吞吐。原理：利用 Falcon BootROM 的 `.fwsignature_ga100` 加载缺陷，在 GSP 启动前用 ROP 链打开 4 个 PLM 寄存器，再写 `CFG1`/`LMR`/`SS0`/`SS1` | ① GA100 的 HBM 颗粒**物理存在**，MX450 的 2 GB 是焊死的上限；② `FBPA_CFG1`/`PLM`/`SS0`/`SS1` 的地址在 Turing 开源头文件中**完全不存在**（`dev_fbpa.h` 仅 29 行、`dev_fuse.h` 仅 35 行、`gh search PLM` 零命中） |
-| [`envytools`](https://github.com/envytools/envytools) | GPU 寄存器数据库、ISA 反汇编、BAR0 peek/poke | rnndb 寄存器库只覆盖 Maxwell 及更早；Turing 无定义 |
-| `nouveau` / `NVK` | Turing 命令流与 ISA 的部分逆向 | 不涉及算力解锁 |
-| [`NVIDIA/open-gpu-kernel-modules`](https://github.com/NVIDIA/open-gpu-kernel-modules) | Turing+ 内核模块源码（GPL/MIT） | 是**本项目唯一有价值的资料来源**，但关键寄存器未公开 |
+| BAR1 只映射 16 MB | 读不到显存 | 改走 **PRAMIN**（`BAR0+0x700000`） |
+| P2P 对 GeForce 返回 EINVAL | 无法 pin VRAM | 不走 P2P |
+| 驱动运行时 BAR0 被占用 | 无法访问寄存器 | **内核模块 `ioremap`** |
+| Falcon 若 HS 则黑箱 | 完全不可读 | **实测为 LS**（关键） |
+| 空闲时 Falcon `halted=1` | IMEM 全零 | **制造 GPU 满载 100%** |
 
-**本项目的真正产出**：不是「破解」，而是一张**标好断点的地图** ——
-后来者不必再重复这 6 个实验、3 个 bug、3 次走不通。
+**读取流程**：
+
+```c
+// 1. GPU 满载（torch 跑 GEMM 循环）
+// 2. insmod mx450_p4.ko bar0_phys=<BAR0> mode=dump dump_bytes=32768
+// 3. 模块内部：
+//    ioremap(BAR0 + 0x409000, 0x1000)
+//    读 HWCFG1 确认 security_model == 2 (LS)
+//    保存 IMEMC(0) 原值
+//    for (addr = 0; addr < 32768; addr += 4) {
+//        blk  = addr / 256;
+//        word = (addr % 256) / 4;
+//        writel((blk<<8)|(word<<2), base + 0x180);   // IMEMC
+//        *(u32*)(buf+addr) = readl(base + 0x184);    // IMEMD
+//    }
+//    恢复 IMEMC(0)
+```
+
+---
+
+## 5. 交付物
+
+| 产物 | 大小 | 校验 |
+|---|---|---|
+| `fecs_imem.bin` — FECS 微码原始镜像 | 32 KB | MD5 `ea8eb3c46165b00421896eef45d1070a` |
+| `fecs_plain.asm` — 完整反汇编 | 1.3 MB / 11401 行 | — |
+| `vram_dump.bin` — 显存 dump | 32 MB | MD5 `1b224dcfeec507673ee64fd35d44005c` |
+| `bios_readonly.bin` — 系统 BIOS | 24 MB | MD5 `4d2c99e85e761e0a3b1b8dcada4cc950` |
+| `envytools/envydis` — 反汇编器 | — | 自行编译 |
+
+> 二进制产物因体积未纳入仓库，可通过 `tools/` 下的脚本重新生成。
+
+---
 
 ## 6. 仓库结构
 
 ```
 .
-├── README.md
-├── LICENSE                         MIT + 独立研究声明
+├── README.md                    简体中文（本文件）
+├── README.zh-TW.md              繁體中文
+├── README.en.md                 English
+├── LICENSE
 ├── docs/
-│   ├── 02-技术路线图.md            四阶段计划、判定标准、已知硬约束
-│   └── 03-内核模块路线图.md         阶段3：工具链已验证，P0-P4 工程计划
-├── kernel/                         内核模块（工具链已验证可编译可加载）
-│   ├── mx450_probe.c
-│   └── Makefile
-├── findings/                       逐日实测记录（append-only，不修改历史）
-│   ├── 2026-10-18-阶段1-寄存器调查.md
-│   ├── 2026-10-18-阶段1-补记-TC计数查询.md
-│   ├── 2026-10-18-阶段1-补记2-ioctl通道.md
-│   ├── 2026-10-18-阶段1-补记4-BIOS分析.md
-│   ├── 2026-10-18-阶段1-补记5-GSP-vBIOS证书验证.md
-│   ├── 2026-10-18-阶段2-GSP固件逆向.md   ← 双层 ELF 解析、芯片分派、私有 CSR
-│   └── 2026-10-18-阶段2-补记-显存访问闭合.md
-├── refs/                           NVIDIA 官方头文件（MIT 许可，原样引用）
-│   ├── dev_fuse.h  dev_fbpa.h  dev_gsp.h
-│   ├── cl0080.h  nvos.h  nv_escape.h  nvstatus.h
-│   └── nvidia-3d-init.c            GR_GET_INFO 官方调用参考
-├── tools/
-│   ├── regs_peek.sh                mmap BAR0 读 PMC 寄存器区
-│   ├── sass_probe.py               ptxas 编译 + SASS 机器码比对
-│   ├── tc_bench.py                 8 路并行 TC 吞吐压测
-│   ├── cublas_kernel.py            抓 cuBLAS 实际算法选择
-│   ├── vram_wall.py                显存分配边界 + UVM 超配代价
-│   ├── read_tc_count.c             NV2080 ioctl 读 TC 计数（半成品，含 3 个 bug 的修法）
-│   ├── enum_cupti_metrics.py       CUPTI metric 枚举（rc=38，已判定不可用）
-│   ├── find_vbios.py               BIOS 中定位 vBIOS
-│   └── bios_structure.py           BIOS 固件卷结构分析
-├── patches/                        驱动补丁（尚未开始）
-└── scripts/                        一键复现
+│   ├── 02-技术路线图.md
+│   └── 03-内核模块路线图.md
+├── findings/                    二十三篇实测记录（append-only）
+├── refs/                        NVIDIA 官方头文件（MIT，原样引用）
+├── kernel/                      6 个内核模块
+│   ├── mx450_probe.c            工具链验证
+│   ├── mx450_p1.c               kprobe 符号解析
+│   ├── mx450_p2.c               内核内存 no-fault 读取
+│   ├── mx450_p3.c               PRAMIN 显存访问
+│   └── mx450_p4.c               FECS IMEM 读取
+├── tools/                       20 个分析工具
+└── scripts/                     QEMU 隔离测试等
 ```
+
+---
 
 ## 7. 测试环境
 
 | 项目 | 值 |
 |---|---|
 | 机器 | LYLNAS（联想昭阳 E4-ITL 改装） |
-| 系统 | fnOS 1.2.0505 / Debian 12 bookworm / kernel 6.18.18 |
+| 系统 | fnOS 1.2.0505 / Debian 12 / kernel 6.18.18 |
 | 主板 / BIOS | LNVNB161216 / F8CN59WW(V2.22) 2024-06-14 |
-| CPU | Intel i7-1165G7（4C8T，AVX-512 VNNI） |
-| 内存 | 2×8 GB DDR4-3200 双通道（已插满） |
+| CPU | Intel i7-1165G7（4C8T） |
 | GPU | GeForce MX450，TU117M，`10de:1f97`，`NV_PMC_BOOT_0 = 0x167000a1` |
-| 显存 | 2048 MiB GDDR6，64-bit，实测带宽 69.3 GB/s，**单次分配上限 1620 MiB** |
+| 显存 | 2048 MiB GDDR6，64-bit，单次分配上限 1620 MiB |
 | 驱动 | 580.142（闭源）/ CUDA 13.0 |
-| 工具链 | torch 2.3.1+cu121、ptxas 12.9、cuBLAS 12.0、gcc 12.2、flashrom、strace |
+| 工具链 | gcc 12.2 / g++ 12.2 / cmake 3.25 / envytools / flashrom / strace |
+
+---
 
 ## 8. 复现
 
 ```bash
-# 显存硬墙（普通分配 vs UVM 超配）
-python3 tools/vram_wall.py
+# 编译内核模块
+cd kernel && make
 
-# TC 吞吐压测（8 路独立累加器）
-python3 tools/tc_bench.py
+# 读取 FECS 微码（需 GPU 满载）
+insmod mx450_p4.ko bar0_phys=<BAR0> mode=dump dump_bytes=32768
 
-# 机器码级验证：TC 指令是否被展开成 FMA
-python3 tools/sass_probe.py
+# 反汇编
+envydis -m falcon -V fuc6 -i -n fecs_imem.bin > fecs_plain.asm
 
-# cuBLAS 实际算法选择 + 吞吐
-/vol1/ganlin/venv/bin/python tools/cublas_kernel.py
-
-# 读 GPU PMC 寄存器（会临时卸载驱动，脚本内自动恢复）
-sudo bash tools/regs_peek.sh
-
-# TC 计数查询（当前卡在 DEVICE_0，见 findings 补记2）
-gcc -O2 -o /tmp/read_tc_count tools/read_tc_count.c && sudo /tmp/read_tc_count
+# 分析寄存器访问
+python3 tools/analyze_iowr.py
 ```
 
-## 9. 已知硬约束（不会因任何后续工作改变）
+---
 
-1. **显存 2048 MiB 是物理焊接的 2 颗 GDDR6**，不是寄存器限制。
-   `cuMemAlloc(1640 MiB)` 即返回 `err 2`。任何软件手段都变不出显存。
-2. **即使 TC 完全解锁（+10~20× 算力），7B QLoRA 仍需 ≈7 GB 显存**，依然装不下。
-   本项目产出的是「算力维度的认知与可能的提升」，不是「能训更大模型」。
+## 9. 未解的边界
 
-## 10. 未排除的后续路径
+**`0x20000` 段的语义无法确定**，三条路线全部尝试：
 
-| 路径 | 前提 | 障碍 |
-|---|---|---|
-| 运行时拦截 GSP 加载 | 编译 `nvidia-open` 内核模块（Turing 自 570 起支持）+ 定位 Falcon 加载点 | **目标寄存器地址未知** —— Turing 开源头文件中无 PLM/CFG1 定义 |
-| 从内存抓已解密 vBIOS | BIOS POST 后、驱动加载前 dump 物理内存 | 需自定义内核模块，且 Boot Guard 会清理 |
-| 硬件层测量 | 逻辑分析仪观察 TC 时钟域 | 需拆机 + 专业设备 |
+| 路线 | 结果 |
+|---|---|
+| envytools rnndb | 覆盖止于 Maxwell，且上界 `0x227FF` 小于微码实际访问的 `0x23800` |
+| NVIDIA 开源头文件 | `turing/tu102/` 无 `dev_gpc.h` / `dev_tpc.h` |
+| NVIDIA 开源 HAL | `NV_PGRAPH_GPC` / `NV_PGRAPH_TPC` 零定义，逻辑在闭源 `nv-kernel.o_binary` |
 
-## 11. 风险声明
+**这不是"还没找到"，是"这一层信息 NVIDIA 没有公开"。**
 
-1. **可能损坏硬件。** 向 GPU 寄存器写入未公开值可导致无法初始化、黑屏，甚至需拆机刷 SPI。
+---
+
+## 10. 风险声明
+
+1. **可能损坏硬件。** 向 GPU 寄存器写入未公开值可导致无法初始化、黑屏。
 2. **笔记本独显无独立 vBIOS Flash。** 写错配置后**没有可回滚的固件区**。
-3. **可能违反保修条款。**
-4. **不提供任何成功保证。** 若最终确认限制在 OTP eFuse，结论就是「不可解锁」——
-   这同样是有价值的结论，会如实记录。
+3. **不提供任何成功保证。** 本项目已确认：微码受 FWSEC 签名保护，只能看不能改。
+4. **显存 1.68 GB 是物理焊接**，任何软件手段都无法改变。
 5. **仅供研究与教育用途**，仅适用于你自己合法拥有的硬件。
 
-## 12. 声明
+---
+
+## 11. 声明
 
 本项目与 NVIDIA 无任何关联。所有商标归其各自所有者。
-仓库内不含 NVIDIA 专有代码或固件；`refs/` 下均为 NVIDIA 以 MIT 许可公开发布的原始头文件，
-原样引用并完整保留其版权声明。
-参考的开源项目各自遵循其原始许可证。
-
-## 13. 进展
-
-- [x] 确认芯片身份（`NV_PMC_BOOT_0 = 0x167000a1` → TU117）
-- [x] 证明 TC 指令真实存在（SASS opcode 指纹）
-- [x] 量化 TC 限速（0.60 TFLOPS / 理论 6–12，两条独立路径）
-- [x] 显存边界（1620 MiB 上限；UVM 4 GB 可分配但带宽损失 21×）
-- [x] 排除 CUPTI 路线（`rc=38`，含开放 profiling 权限复测）
-- [x] 打通 NV2080 ioctl 通道（ROOT_CLIENT 成功），定位 3 个真实 bug
-- [x] 系统 BIOS 只读导出并判定 Boot Guard 加密
-- [x] 在 GSP 固件中确认 vBIOS 证书链验证机制（FWSECLIC）
-- [x] 解析 GSP 固件双层 ELF 结构（外层 wrapper + 内层 RISC-V executable）
-- [x] 定位芯片分派逻辑（`PMC_BOOT_0 >> 20 == 359` → `.tu10x_text`）
-- [x] 发现 GSP 私有 CSR 通道（`0x7c8–0x7cc`）
-- [x] **证否**：Ampere 的 PLM/SS0/SS1 机制在 Turing 固件中完全不存在（8 个地址零命中）
-- [x] **证否**：Turing 的 FECS/GPCCS 微码不在文件系统，固化于 GPU 内部
-- [ ] ~~定位 Turing 的 Tensor Core 限速机制~~ → **控制点不在软件可及范围**
-- [x] **证否**：/dev/mem 被 STRICT_DEVMEM 拒绝；BAR1 256MB 全零（D3cold）
-- [x] **软件层九条路径全部闭合**（见 findings/阶段2-补记-显存访问闭合.md）
-- [x] **内核模块工具链验证通过**：编译成功 + 加载成功（`mx450_probe.ko`）
-- [x] 确认 nvidia 内部符号为 local 未导出（需 kprobe 绕过 kallsyms_lookup_name）
-- [ ] 驱动级内核模块 P0-P4（见 docs/03，预估 1.5–3 个月）
-- [ ] 硬件层测量（逻辑分析仪 / 去盖显微分析）—— 超出软件研究范畴
+仓库内不含 NVIDIA 专有代码或固件；`refs/` 下均为 NVIDIA 以 MIT 许可公开发布的原始头文件。
 
 ## 许可
 
