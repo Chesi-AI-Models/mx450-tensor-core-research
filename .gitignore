@@ -1,5 +1,5 @@
 # 参考资料（仅链接，不含第三方代码）
-refs/nvidia-swref/*.h
+# refs/ 下为 MIT 许可的 NVIDIA 头文件，予以保留
 refs/*.tar.gz
 
 # 实测原始输出
