@@ -106,7 +106,8 @@
 │   ├── 2026-10-18-阶段1-补记-TC计数查询.md
 │   ├── 2026-10-18-阶段1-补记2-ioctl通道.md
 │   ├── 2026-10-18-阶段1-补记4-BIOS分析.md
-│   └── 2026-10-18-阶段1-补记5-GSP-vBIOS证书验证.md
+│   ├── 2026-10-18-阶段1-补记5-GSP-vBIOS证书验证.md
+│   └── 2026-10-18-阶段2-GSP固件逆向.md   ← 双层 ELF 解析、芯片分派、私有 CSR
 ├── refs/                           NVIDIA 官方头文件（MIT 许可，原样引用）
 │   ├── dev_fuse.h  dev_fbpa.h  dev_gsp.h
 │   ├── cl0080.h  nvos.h  nv_escape.h  nvstatus.h
@@ -202,9 +203,13 @@ gcc -O2 -o /tmp/read_tc_count tools/read_tc_count.c && sudo /tmp/read_tc_count
 - [x] 打通 NV2080 ioctl 通道（ROOT_CLIENT 成功），定位 3 个真实 bug
 - [x] 系统 BIOS 只读导出并判定 Boot Guard 加密
 - [x] 在 GSP 固件中确认 vBIOS 证书链验证机制（FWSECLIC）
-- [ ] 定位 Turing 的 Tensor Core 限速机制（**需要尚未公开的寄存器地址**）
-- [ ] 运行时改写（若找到目标寄存器）
-- [ ] 稳定性验证与回滚方案
+- [x] 解析 GSP 固件双层 ELF 结构（外层 wrapper + 内层 RISC-V executable）
+- [x] 定位芯片分派逻辑（`PMC_BOOT_0 >> 20 == 359` → `.tu10x_text`）
+- [x] 发现 GSP 私有 CSR 通道（`0x7c8–0x7cc`）
+- [x] **证否**：Ampere 的 PLM/SS0/SS1 机制在 Turing 固件中完全不存在（8 个地址零命中）
+- [x] **证否**：Turing 的 FECS/GPCCS 微码不在文件系统，固化于 GPU 内部
+- [ ] ~~定位 Turing 的 Tensor Core 限速机制~~ → **控制点不在软件可及范围**
+- [ ] 硬件层测量（逻辑分析仪 / 去盖显微分析）—— 超出软件研究范畴
 
 ## 许可
 
