@@ -289,3 +289,21 @@ python3 tools/analyze_iowr.py
 ## 许可
 
 MIT（见 `LICENSE`）。研究成果欢迎引用，使用风险自负。
+
+---
+
+## 许可证边界（重要）
+
+本项目主体为 **MIT**（见 `LICENSE`）。
+
+**例外：`full-unlock/01-upstream-analysis/vendor/cmpunlocker/` 为 GPL v2**，
+原样引入并保留其 `LICENSE` 文件，仅作研究参考。
+
+这是「聚合」（mere aggregation）而非衍生：该目录与主体代码无链接关系，
+`full-unlock/01-upstream-analysis/cmpunlocker.md` 的分析文本亦为本项目原创。
+
+**如需 MIT 纯净分发，删除 `full-unlock/01-upstream-analysis/vendor/` 即可**，
+其余部分不受影响。
+
+---
+
