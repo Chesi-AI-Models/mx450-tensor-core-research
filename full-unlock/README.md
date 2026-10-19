@@ -13,10 +13,29 @@
 
 | 目标 | 能否破解 | 原因 | 本目录的应对 |
 |---|---|---|---|
-| **Tensor Core** | ❌ 不存在 | TU117 的 SM 里没有 TC，位置是 FP16 单元 | ✅ **软件重建**（`02-software-tensor-core/`） |
-| **显存 2 GB** | ❌ 不能 | 2 颗 GDDR6 物理焊死，没有"被封印的容量" | — |
+| **Tensor Core** | ❌ 不存在 | TU117 的 SM 里没有 TC，位置是 FP16 单元 | ✅ **软件重建**（`02-software-tensor-core/`，1.603 TFLOPS） |
+| **显存 2 GB** | ⚠️ **可扩展** | 物理 2 颗 GDDR6 焊死，但可用系统 RAM 扩展 | ✅ **GreenBoost 实测 8 GB 虚拟显存**（见下） |
 | **SM 频率** | ⚠️ 有限 | `nvidia-settings` 可小幅超频，受 TGP 限制 | — |
 | **FECS/GPCCS 微码** | ⚠️ 只能读 | FWSEC 证书链验证，改一字节即拒绝加载 | 已完整 dump（见上级目录 findings） |
+
+### ⭐ 最重要的成果：显存从 1.64 GiB 扩展到 8 GiB
+
+**GreenBoost（`vendor/greenboost/`）已在 MX450 + fnOS 6.18.18 上完整验证通过：**
+
+```
+physical VRAM reported: 1.64 GiB
+
+alloc 2 GiB: OK    alloc 4 GiB: OK    alloc 8 GiB: OK   ← 物理的 4.9 倍
+matmul on 4GiB-occupied GPU: OK, c[0,0]=1024.0 (expect 1024.0)
+```
+
+**三级存储：T1 VRAM 2 GB + T2 系统 RAM 8 GB + T3 NVMe 8 GB = 18 GB 模型容量。**
+
+**代价：T2 走 PCIe 3.0 x4，带宽约 4 GB/s，是 VRAM 的 1/20。推理能忍，训练会慢 3-10 倍。**
+
+**适配细节（含唯一的两行代码修改）：[`01-upstream-analysis/greenboost-adaptation.md`](01-upstream-analysis/greenboost-adaptation.md)**
+
+**这意味着 7B QLoRA（约需 4 GB）从「物理不可能」变成「能跑，但慢」。**
 
 ### 为什么 CMPUnlocker 的方法不能照搬
 
