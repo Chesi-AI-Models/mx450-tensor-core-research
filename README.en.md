@@ -9,6 +9,21 @@
 > **Status: all publicly-documented boundaries explored · no unlock achieved · conclusions are evidence-based**
 
 ---
+> ## ⚠️ Conclusion Revised (2026-10-19)
+>
+> **TU117 has no Tensor Core.** The silicon area where TC would sit is occupied by FP16 units.
+> HMMA instructions do execute — but they are emulated by FP16 units, not by a Tensor Core.
+>
+> Measured: packed FP16 reaches **5.77 TFLOPS**, while HMMA instructions reach only **0.60 TFLOPS** (9.6× slower).
+> The actual kernel is `cutlass_70_tensorop_f16_s884gemm` — compiled for **SM 7.0**, not sm75.
+>
+> Three independent sources (Expreview / Notebookcheck / Baidu Baike) documented in 2019 that TU117 removed TC.
+>
+> **Any earlier statement in this document claiming "TC is throttled" is superseded by this correction.**
+> See [findings/2026-10-19-最終結論-MX450沒有TensorCore.md](findings/2026-10-19-最終結論-MX450沒有TensorCore.md)
+
+---
+
 
 ## One-line conclusion
 
