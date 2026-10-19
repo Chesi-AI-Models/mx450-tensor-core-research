@@ -2,59 +2,127 @@
 
 **简体中文** | [繁體中文](README.zh-TW.md) | [English](README.en.md)
 
-> 查清 NVIDIA GeForce MX450（TU117M）上 Tensor Core 被降速至理论值 5–10% 的机制，
-> 并系统性地探明这台机器在固件/驱动栈上的所有可访问边界。
+> 一个关于「**这块卡到底有没有 Tensor Core**」的完整取证过程。
+> 结论：**没有。** 本文记录如何用九条路径证明这一点，以及沿途挖出的
+> Turing 固件、Falcon 微码、GR Context 布局等一手材料。
 >
-> **状态：公开资料可达的边界已全部探明 · 未实现解锁 · 结论以实测数据为准**
+> **状态：结论已闭合 · 全部实测可复现**
 
 ---
 
 ## 一句话结论
 
-**这块卡上确实存在一个被锁住的算力空间（Tensor Core 有指令、能执行、但吞吐只有理论值的 5–10%）。
-这台机器用五层机制把它封住了，本次研究逐一验证并绕过了其中四层——第五层是 NVIDIA 从未公开的寄存器语义。**
+**TU117 的 SM 里没有 Tensor Core。原本放 TC 的位置是 FP16 单元。**
+
+**HMMA 指令能编译、能执行、结果正确——因为它由 FP16 单元模拟，而不是由 TC 执行。**
+
+**实测：FP16 打包运算 5.77 TFLOPS，而 HMMA 指令只有 0.60 TFLOPS——TC 路径比纯 FP16 慢 9.6 倍。**
+
+**所以「解锁 TC」不成立：不是被锁住打不开，是这个功能在硅片上不存在。**
 
 ---
 
-## 1. 项目起点：一个反常的实测现象
+## 0. 为什么这个结论可信：三方公开资料 + 四组实测
 
-| 路径 | 实测吞吐 | 说明 |
+### 公开资料（三方独立，2019 年就已写明）
+
+| 来源 | 原文 |
+|---|---|
+| **超能网** 2019-04-24 | 「GTX 1650 所用的 TU117 和之前的 TU116 一样**去掉了 RT Core、Tensor Core**，SM 单元内部架构经过了修改，**原本放 Tensor Core 的位置变成了 FP16 半精度浮点运算单元**」 |
+| **Notebookcheck** | 「与更快的 RTX 2000 GPU 相比，**1650 没有集成 Raytracing 或 Tensor 内核**」 |
+| **百度百科** | 「TU117 **移除了 RT Core 和用于 AI 超采样的 Tensor Core**」 |
+| 对照：RTX 20 系列 | 每个 SM 有 **8 个 Tensor Core** |
+
+### 本机实测（`tools/` 下脚本可复现）
+
+| 路径 | 实测 | 说明 |
 |---|---|---|
-| 手写 PTX `mma.m16n8k8`（Tensor Core 指令） | **0.60 TFLOPS** | 走 TC 路径 |
-| 手写 PTX `FP16x2`（CUDA 核，不碰 TC） | **5.77 TFLOPS** | 纯 FP16 单元 |
-| 手写 PTX `FP32 FMA` | 3.06 TFLOPS | 基准 |
-| `cuBLAS` FP16，日志确认 `CUBLAS_GEMM_DEFAULT_TENSOR_OP(99)` | **0.32 TFLOPS** | NVIDIA 自己的库 |
-| `cuBLAS` FP32（不用 TC） | 2.07 TFLOPS | 对照 |
-| TU117 理论张量峰值（14 SM × 4 TC） | 6 – 12 TFLOPS | — |
+| PTX `FP16x2`（打包，CUDA 核） | **5.77 TFLOPS** | 纯 FP16 单元 |
+| PTX `FP32 FMA` | 3.06 TFLOPS | 基准 |
+| cuBLAS FP32（`volta_sgemm_128x64_nn`） | 2.12 TFLOPS | 达理论 85% |
+| **PTX `mma.m16n8k8`（TC 指令）** | **0.60 TFLOPS** | **比 FP16 慢 9.6×** |
+| cuBLAS `CUBLAS_GEMM_DEFAULT_TENSOR_OP(99)` | 0.32 TFLOPS | 比 FP16 慢 18× |
 
-**TC 指令存在、能编译、能执行、不报错 —— 但比不用 TC 还慢 5–6 倍。**
+**FP16 单元理论峰值核算：`14 SM × 64 CUDA × 2(FMA) × 2(打包) × 1.6 GHz = 5.73 TFLOPS`**
+**实测 5.77 —— 吻合。说明 FP16 单元是满速的。**
+
+**而 TC 路径 0.60，是 FP16 的 1/9.6。**
+
+### 决定性证据：kernel 名
+
+cuBLAS 日志显示它选了 TC 算法：
+```
+algo: val=CUBLAS_GEMM_DEFAULT_TENSOR_OP(99)
+```
+
+但实际执行的 kernel 是：
+```
+void cutlass::Kernel<cutlass_70_tensorop_f16_s884gemm_relu_f16_1...
+                    ↑ cutlass_70（SM 7.0 编译）  ↑ s884 = m8n8k4（Volta 第一代 TC 形状）
+```
+
+**两个破绽：**
+
+1. **`cutlass_70` 而不是 `sm75`** —— NVIDIA **没有为 TU117 提供 sm75 的 TC kernel**，cuBLAS 只能回退到 Volta 的通用 kernel
+2. **`s884`（m8n8k4）** —— 不是 Turing 的 m16n8k8 / m16n8k16
+
+**如果 TU117 真有 TC，NVIDIA 不可能不为它编一个 sm75 的 kernel。**
 
 ---
 
-## 2. 六层封锁与突破结果
+## 1. 项目起点：一个被误读的现象
 
-| # | 封锁层 | 常规认知 | 本次结果 |
+**最初看到的是这个：**
+
+| 路径 | 实测吞吐 |
+|---|---|
+| 手写 PTX `mma.m16n8k8`（TC 指令） | 0.60 TFLOPS |
+| 手写 PTX `FP16x2`（CUDA 核，不碰 TC） | **5.77 TFLOPS** |
+| 手写 PTX `FP32 FMA` | 3.06 TFLOPS |
+| `cuBLAS` FP16 `TENSOR_OP` | 0.32 TFLOPS |
+| `cuBLAS` FP32 | 2.07 TFLOPS |
+
+**当时的解读是：「TC 存在，但被限速到理论值（6–12 TFLOPS）的 5–10%」。**
+
+**这个解读错了两处：**
+
+1. **「6–12 TFLOPS 理论值」是拿 RTX 20 系列（TU10x，每 SM 8 个 TC）套过来的，
+   TU117 根本没有 TC，这个基准不存在。**
+2. **「比不用 TC 还慢 5–6 倍」这个现象，本身就是「模拟」的典型特征——
+   真 TC 不可能比同代 FP16 慢，只有「用别的单元模拟 TC」才会这样。**
+
+**正确解读：`mma` 慢于 `FP16x2`，说明 HMMA 指令被降级到 FP16 单元执行。**
+
+---
+
+## 2. 九条路径的探索结果
+
+**在得出结论之前，本项目把软件层能走的路径全部走了一遍。**
+**这些路径本身是有价值的——它们共同构成了「TU117 上没有可解锁的 TC」的排除性证据。**
+
+| # | 路径 | 做了什么 | 结果 |
 |---|---|---|---|
-| ① | **硬件层**：GPU 无独立 SPI Flash | 无法刷 vBIOS | ❌ 无法突破（物理事实） |
-| ② | **系统固件**：Intel Boot Guard 签名加密 | 无法解析 BIOS | ❌ 无法突破（需厂商私钥） |
-| ③ | **GPU 固件**：GSP FWSEC 证书链验证 | 无法修改微码 | ❌ 无法突破（需 NVIDIA 私钥） |
-| ④ | **驱动层**：NVML / CUPTI / 私有 ioctl 逐层裁剪 | 无法读取底层 | ✅ **部分突破**（PRAMIN 通道） |
-| ⑤ | **微码层**：Falcon 若为 HS 则黑箱 | 无法读取微码 | ✅ **突破**（实测 LS，FECS 32KB + GPCCS 16KB 全部 dump） |
-| ⑥ | **寄存器语义**：Falcon IO 空间 host 窗口仅 4 KB | — | ❌ **不可突破**（`HOST_IO_INDEX` 仅 6 位，硬件设计） |
+| 1 | 用户态 API | NVML / CUPTI / 私有 ioctl | 逐层裁剪，CUPTI `rc=38` 零 metric |
+| 2 | 系统固件 | flashrom 只读导出 24 MB BIOS | Intel Boot Guard 加密，无 VFCT / 无 `_ROM` |
+| 3 | GPU 固件 | GSP 双层 RISC-V ELF 完整反汇编 | 30 MB 全解，8 个 Ampere 寄存器地址零命中 |
+| 4 | 显存访问 | PRAMIN 通道（BAR0+0x700000） | **打通**，写-读回验证，dump 32 MB |
+| 5 | Falcon 安全模式 | 读 `HWCFG1` | **LIGHT SECURE**（非 HS 黑箱） |
+| 6 | FECS 微码 | GPU 满载时读 IMEM | **完整 dump 32 KB + 反汇编 11401 行** |
+| 7 | GPCCS 微码 | 同上，基址 0x41A000 | **完整 dump 16 KB + 反汇编 6059 行** |
+| 8 | Falcon IO 空间 | 查 `HOST_IO_INDEX` 位宽 | 256 KB 空间，host 窗口仅 4 KB，`0x20000` 段不可见 |
+| 9 | 闭源驱动 | nvidia.ko 符号级逆向（46614 符号） | 五类线索全部排除，**`tensor|HMMA|MMA_` 字符串零命中** |
 
-> **第 ⑥ 层是本项目最终撞到的墙。**
-> Falcon IO 空间有 256 KB，但 host 只能通过 `falcon_base + 0x000-0xFFF` 这 4 KB 窗口访问，
-> 而 `HOST_IO_INDEX`（`+0xFFC`）的 6 个 bit 只能选择 `bits 2-7`（第几个副本），
-> **选不到 `bits 8+`（哪个寄存器）**。因此 `0x20000` 段——即 GR 引擎内部寄存器——对 host 永久不可见。
-> 这不是「还没找到方法」，是**地址译码器的物理位宽决定的**。
+**九条路径，没有一条找到「TC 配置」或「算力开关」。**
+
+**原因现在很清楚了：因为它们要找的东西不存在。**
 
 ---
 
-## 3. 已证实的 28 条硬事实
+## 3. 已证实的硬事实
 
 | # | 事实 | 证据 |
 |---|---|---|
-| 1 | TC 存在但被限速至理论值 5% | 手写 PTX 0.60 vs 理论 6–12；cuBLAS 同现象 |
+| 1 | **TU117 无 Tensor Core；HMMA 由 FP16 单元模拟** | 三方公开资料 + FP16 5.77 vs mma 0.60（慢 9.6×）+ kernel 名 `cutlass_70` |
 | 2 | GSP 固件不含 TC 控制逻辑 | 双层 ELF 反汇编，8 个 Ampere 寄存器地址零命中 |
 | 3 | vBIOS 受 FWSEC 证书链保护 | 固件内 8 个 `VERIFY_*` 错误码 |
 | 4 | BAR1「仅映射 16MB」可绕过 | PRAMIN 通道，写-读回验证通过 |
