@@ -307,3 +307,12 @@ MIT（见 `LICENSE`）。研究成果欢迎引用，使用风险自负。
 
 ---
 
+
+---
+
+## 法律与使用边界（重要）
+
+1. 本仓库所有内容仅限**研究用途**（research/educational use），针对**你自己拥有的设备**（owner-device）。
+2. 固件修改、ROP 注入等实验**仅在你的设备上、自担风险**；作者不对任何硬件损坏、驱动故障负责（恢复方法见 `05-firmware-exploit/recover_gpu.sh`）。
+3. **NVIDIA 固件二进制原件不在此仓库**（版权属 NVIDIA），只记录获取方法；请勿将本仓库工具用于绕过设备授权分发。
+4. 第三方外部项目（Sudoku / drama-pp / cmp170hx / metaroce / open-rdma-driver / pplx-garden / spdlog / DeepInfer 等）保留其各自许可，获取方式见 `refs/refs-fetch-manifest.sh`（SHA 钉死版）。

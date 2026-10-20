@@ -2,6 +2,10 @@
 # refs/ 下为 MIT 许可的 NVIDIA 头文件，予以保留
 refs/*.tar.gz
 
+# 外部项目 clone（第三方代码带各自 .git，禁止入仓库；复现用 refs/refs-fetch-manifest.sh）
+refs/*/
+!refs/refs-fetch-manifest.sh
+
 # 实测原始输出
 findings/raw/*
 
@@ -13,3 +17,15 @@ __pycache__/
 
 # 日志
 *.log
+
+# ===== NVIDIA 固件二进制原件（版权属 NVIDIA；只入获取方法，不入原件）=====
+*.fwimage
+gsp_tu10x.bin*
+gsp_tu11x.bin*
+booter_load-*.bin
+fwimage_tu117*
+gsp_tu117*
+
+# ===== 凭据 / 本机路径（防泄漏）=====
+*lianyiLin1031*
+*.ssh*
