@@ -29,3 +29,16 @@ gsp_tu117*
 # ===== 凭据 / 本机路径（防泄漏）=====
 *lianyiLin1031*
 *.ssh*
+
+# --- 内核模块编译产物（内核构建自动生成，不应入库）---
+*.ko
+*.o
+*.mod
+*.mod.c
+*.cmd
+.*.cmd
+*.symvers
+*.order
+modules.order
+Module.symvers
+.tmp_versions/
