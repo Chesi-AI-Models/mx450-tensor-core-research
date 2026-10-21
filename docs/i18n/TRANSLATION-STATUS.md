@@ -10,7 +10,7 @@
 ## 总览
 
 - 需翻译文档：**50 篇**，合计 **342 KB**
-- 已完成：**20 篇**（含 1 篇仅英文）（根 `README.md` → `.zh-TW.md` / `.en.md`，已同步最新章节）
+- 已完成：**23 篇**（含 1 篇仅英文）（根 `README.md` → `.zh-TW.md` / `.en.md`，已同步最新章节）
 - 待完成：**49 篇**
 
 ## 优先级分批
@@ -36,7 +36,7 @@
 - [x] `findings/2026-10-18-阶段3-PRAMIN读取成功.md` (4 KB) — zh-TW + en 完成
 - [ ] `findings/2026-10-18-阶段1-补记4-BIOS分析.md` (4 KB)
 - [x] `findings/2026-10-18-阶段3-PRAMIN读取受阻.md` (4 KB) — zh-TW + en 完成
-- [ ] `findings/2026-10-18-阶段1-补记2-ioctl通道.md` (4 KB)
+- [x] `findings/2026-10-18-阶段1-补记2-ioctl通道.md` (4 KB) — zh-TW + en 完成
 - [x] `findings/2026-10-18-阶段3-P2-矛盾解决.md` (4 KB) — zh-TW + en 完成
 - [x] `findings/2026-10-18-阶段4-FECS微码反汇编.md` (3 KB) — zh-TW + en 完成
 - [x] `findings/2026-10-18-阶段3-P2-尾调用确认.md` (3 KB) — zh-TW + en 完成
@@ -46,10 +46,10 @@
 - [x] `findings/2026-10-18-阶段3-微码不在显存.md` (3 KB) — zh-TW + en 完成
 - [x] `findings/2026-10-18-阶段3-Falcon安全模式判定前置.md` (3 KB) — zh-TW + en 完成
 - [x] `findings/2026-10-18-阶段2-补记-显存访问闭合.md` (3 KB) — zh-TW + en 完成
-- [ ] `findings/2026-10-18-阶段1-补记3-CUPTI不可用.md` (3 KB)
+- [x] `findings/2026-10-18-阶段1-补记3-CUPTI不可用.md` (3 KB) — zh-TW + en 完成
 - [x] `findings/2026-10-18-阶段4-寄存器段归属分析.md` (3 KB) — zh-TW + en 完成
 - [x] `findings/2026-10-18-阶段1-补记-TC计数查询.md` (3 KB) — zh-TW + en 完成
-- [ ] `findings/2026-10-18-最终状态与明日待办.md` (3 KB)
+- [x] `findings/2026-10-18-最终状态与明日待办.md` (3 KB) — zh-TW + en 完成
 
 ### 第 3 批（full-unlock 研究报告）
 - [ ] `full-unlock/05-firmware-exploit/任务B-FWSEC测绘报告.md` (15 KB)
