@@ -29,7 +29,7 @@ GreenBoost 用「三级存储」把系统 RAM 和 NVMe 变成虚拟显存：
 ### 步骤 1 · 编译内核模块
 
 ```bash
-# 源码：vendor/greenboost/greenboost.c + greenboost_ioctl.h
+# 上游：greenboost 的 greenboost.c + greenboost_ioctl.h（用 refs-fetch-manifest.sh 获取）
 cat > Makefile <<'EOF'
 obj-m += greenboost.o
 KDIR ?= /lib/modules/$(shell uname -r)/build
@@ -207,7 +207,7 @@ UVM 的页面迁移由驱动按需处理，延迟比 pinned DMA-BUF 高。
 - **项目**：GreenBoost v2.5
 - **作者**：Ferran Duarri
 - **许可**：GPL v2（开源）/ 商业双许可
-- **源码**：`vendor/greenboost/`（原样引入，保留 LICENSE）
+- **上游**：`refs/refs-fetch-manifest.sh` 拉取（本仓库不再内联源码）
 - **本适配的修改**：仅 2 行（`cuMemHostRegister` → `_v2`）
 
 **本适配报告为原创，记录了 MX450 + fnOS 6.18.18 上的完整验证过程。**

@@ -20,7 +20,7 @@
 
 ### ⭐ 最重要的成果：显存从 1.64 GiB 扩展到 8 GiB
 
-**GreenBoost（`vendor/greenboost/`）已在 MX450 + fnOS 6.18.18 上完整验证通过：**
+**GreenBoost（上游源码，用 `refs/refs-fetch-manifest.sh` 获取）已在 MX450 + fnOS 6.18.18 上完整验证通过：**
 
 ```
 physical VRAM reported: 1.64 GiB
@@ -58,7 +58,7 @@ full-unlock/
 ├── README.md                      本文件：现实核查 + 总览
 ├── 01-upstream-analysis/          所有参考开源项目的分析
 │   ├── cmpunlocker.md             ★ CMPUnlocker 完整技术拆解
-│   └── vendor/cmpunlocker/        ★ 上游源码（GPL v2，见许可证说明）
+│   └── （第三方源码已移除，见 refs/refs-fetch-manifest.sh）
 ├── 02-software-tensor-core/       ★ 核心：用 CUDA core 重建 Tensor Core
 │   ├── README.md                  实现说明与性能数据
 │   ├── triton_gemm.py             v1: Triton tl.dot（走 HMMA）0.595
@@ -132,12 +132,12 @@ GPU 执行
 
 ## 五、许可证边界（重要）
 
-`01-upstream-analysis/vendor/cmpunlocker/` 是 **GPL v2** 代码，原样引入、保留原许可证。
+**本目录全部内容均为本项目原创，MIT 许可。**
 
-**本目录其他部分（含 `02-software-tensor-core/` 全部代码）为本项目原创，
-不因引用 vendor 目录而受 GPL 约束。** 这是 Linux 内核 `vendor/` 目录的通行做法。
+早期版本曾内联 `01-upstream-analysis/vendor/`（GPL v2 的 cmpunlocker 与 greenboost）。
+**2026-10-21 已全部移除**，仓库不再包含任何第三方源码副本，许可证边界因此变得干净。
 
-如需在 GPL 不兼容的项目中使用，请删除 `vendor/` 目录，仅参考 `cmpunlocker.md` 的分析。
+需要查阅上游源码时：`bash refs/refs-fetch-manifest.sh`（SHA 已钉死）。
 
 ---
 

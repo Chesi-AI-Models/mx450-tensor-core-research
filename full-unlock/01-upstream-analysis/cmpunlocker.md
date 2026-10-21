@@ -1,6 +1,6 @@
 # CMPUnlocker 完整技术拆解
 
-> 上游：`d3dx9/cmpunlocker`（GPL v2，源码已纳入 `vendor/cmpunlocker/`）
+> 上游：`d3dx9/cmpunlocker`（GPL v2）。**源码不随本仓库分发**，用 `refs/refs-fetch-manifest.sh` 获取。
 > 目标：NVIDIA CMP 170HX（GA100），8 GB → 64 GB，恢复 A100 算力
 > 本文目的：搞清它的每一步，判断哪些能用于 MX450
 
@@ -114,5 +114,5 @@ POST_PLM_WRITES = [
 
 ## 七、许可证
 
-`vendor/cmpunlocker/` 为 **GPL v2**，原样引入并保留 `LICENSE` 文件。
+上游 `cmpunlocker` 为 **GPL v2**。本仓库**不再内含其源码**，仅保留本文件（原创分析，MIT）。
 本项目其他部分为原创，不因引用该目录而受 GPL 约束。

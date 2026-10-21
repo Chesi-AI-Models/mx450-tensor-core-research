@@ -294,16 +294,15 @@ MIT（见 `LICENSE`）。研究成果欢迎引用，使用风险自负。
 
 ## 许可证边界（重要）
 
-本项目主体为 **MIT**（见 `LICENSE`）。
+本项目**全部为 MIT**（见 `LICENSE`）。
 
-**例外：`full-unlock/01-upstream-analysis/vendor/cmpunlocker/` 为 GPL v2**，
-原样引入并保留其 `LICENSE` 文件，仅作研究参考。
+**本仓库不包含任何第三方源码副本。** 早期版本曾内联 `vendor/`（GPL v2 的
+cmpunlocker 与 greenboost），已于 2026-10-21 全部移除，以保持许可证纯净。
 
-这是「聚合」（mere aggregation）而非衍生：该目录与主体代码无链接关系，
-`full-unlock/01-upstream-analysis/cmpunlocker.md` 的分析文本亦为本项目原创。
-
-**如需 MIT 纯净分发，删除 `full-unlock/01-upstream-analysis/vendor/` 即可**，
-其余部分不受影响。
+需要查阅上游源码时，用 `refs/refs-fetch-manifest.sh` 一键 clone（SHA 已钉死），
+或直接访问上游仓库。本项目对上游客体的分析文本均为原创，见：
+- `full-unlock/01-upstream-analysis/cmpunlocker.md`
+- `full-unlock/01-upstream-analysis/greenboost-adaptation.md`
 
 ---
 
