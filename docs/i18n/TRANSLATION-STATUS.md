@@ -10,7 +10,7 @@
 ## 总览
 
 - 需翻译文档：**50 篇**，合计 **342 KB**
-- 已完成：**14 篇**（含 1 篇仅英文）（根 `README.md` → `.zh-TW.md` / `.en.md`，已同步最新章节）
+- 已完成：**17 篇**（含 1 篇仅英文）（根 `README.md` → `.zh-TW.md` / `.en.md`，已同步最新章节）
 - 待完成：**49 篇**
 
 ## 优先级分批
@@ -29,11 +29,11 @@
 - [ ] `findings/2026-10-18-阶段2-GSP固件逆向.md` (7 KB)
 - [ ] `findings/2026-10-18-阶段1-寄存器调查.md` (5 KB)
 - [ ] `findings/2026-10-19-段归属判定失败与边界确认.md` (4 KB)
-- [ ] `findings/2026-10-18-阶段1-补记5-GSP-vBIOS证书验证.md` (4 KB)
+- [x] `findings/2026-10-18-阶段1-补记5-GSP-vBIOS证书验证.md` (4 KB) — zh-TW + en 完成
 - [ ] `findings/2026-10-18-阶段3-P2-反汇编还原签名.md` (4 KB)
-- [ ] `findings/2026-10-18-阶段4-FECS微码dump成功.md` (4 KB)
+- [x] `findings/2026-10-18-阶段4-FECS微码dump成功.md` (4 KB) — zh-TW + en 完成
 - [ ] `findings/2026-10-18-阶段3-P2-读通NVIDIA函数.md` (4 KB)
-- [ ] `findings/2026-10-18-阶段3-PRAMIN读取成功.md` (4 KB)
+- [x] `findings/2026-10-18-阶段3-PRAMIN读取成功.md` (4 KB) — zh-TW + en 完成
 - [ ] `findings/2026-10-18-阶段1-补记4-BIOS分析.md` (4 KB)
 - [ ] `findings/2026-10-18-阶段3-PRAMIN读取受阻.md` (4 KB)
 - [ ] `findings/2026-10-18-阶段1-补记2-ioctl通道.md` (4 KB)
