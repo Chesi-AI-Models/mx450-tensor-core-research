@@ -10,7 +10,7 @@
 ## 总览
 
 - 需翻译文档：**50 篇**，合计 **342 KB**
-- 已完成：**13 篇**（含 1 篇仅英文）（根 `README.md` → `.zh-TW.md` / `.en.md`，已同步最新章节）
+- 已完成：**14 篇**（含 1 篇仅英文）（根 `README.md` → `.zh-TW.md` / `.en.md`，已同步最新章节）
 - 待完成：**49 篇**
 
 ## 优先级分批
@@ -25,7 +25,7 @@
 - [ ] `findings/2026-10-19-iowr地址空间归属判定.md` (8 KB)
 - [ ] `findings/2026-10-19-Falcon-IO地址空间完整模型.md` (8 KB)
 - [ ] `findings/2026-10-19-GPCCS微码与通信机制.md` (8 KB)
-- [ ] `findings/2026-10-19-最终结论-MX450没有TensorCore.md` (7 KB)
+- [x] `findings/2026-10-19-最终结论-MX450没有TensorCore.md` (7 KB) — zh-TW + en 完成 ★结论文档
 - [ ] `findings/2026-10-18-阶段2-GSP固件逆向.md` (7 KB)
 - [ ] `findings/2026-10-18-阶段1-寄存器调查.md` (5 KB)
 - [ ] `findings/2026-10-19-段归属判定失败与边界确认.md` (4 KB)

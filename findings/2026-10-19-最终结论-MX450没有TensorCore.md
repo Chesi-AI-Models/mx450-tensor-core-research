@@ -1,5 +1,7 @@
 # 🔴🔴🔴 最终结论：MX450 没有 Tensor Core
 
+**简体中文** | [繁體中文](2026-10-19-最终结论-MX450没有TensorCore.zh-TW.md) | [English](2026-10-19-最终结论-MX450没有TensorCore.en.md)
+
 ## 一、我必须先承认一个判断错误
 
 **本项目此前一直的表述是：「Tensor Core 存在，但被限速到理论值的 5%（0.60 vs 6–12 TFLOPS）」。**
