@@ -1,5 +1,7 @@
 # MX450 完整破解流程 — 现实核查与执行记录
 
+**简体中文** | [繁體中文](README.zh-TW.md) | [English](README.en.md)
+
 > 本目录是对「**尽可能彻底解锁 MX450 的 Tensor Core**」这个目标的完整回答。
 >
 > 结论先行：**TU117 没有 Tensor Core 硬件，无法"解锁"；但可以用 CUDA core 重建一个，

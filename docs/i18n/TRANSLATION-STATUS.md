@@ -10,14 +10,14 @@
 ## 总览
 
 - 需翻译文档：**50 篇**，合计 **342 KB**
-- 已完成：**1 篇**（根 `README.md` → `.zh-TW.md` / `.en.md`，已同步最新章节）
-- 待完成：**50 篇**
+- 已完成：**2 篇**（根 `README.md` → `.zh-TW.md` / `.en.md`，已同步最新章节）
+- 待完成：**49 篇**
 
 ## 优先级分批
 
 ### 第 1 批（核心叙事，先做）
 - [ ] `full-unlock/05-firmware-exploit/README.md` (33 KB)
-- [ ] `full-unlock/README.md` (6 KB)
+- [x] `full-unlock/README.md` (6 KB) — zh-TW + en 完成
 
 ### 第 2 批（findings 实测记录）
 - [ ] `findings/2026-10-19-nvidia-ko符号级逆向.md` (11 KB)
