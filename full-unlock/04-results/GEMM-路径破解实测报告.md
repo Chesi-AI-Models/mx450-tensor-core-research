@@ -1,5 +1,7 @@
 # MX450 (TU117) GEMM 路径破解 —— 实测报告
 
+**简体中文** | [繁體中文](GEMM-路径破解实测报告.zh-TW.md) | [English](GEMM-路径破解实测报告.en.md)
+
 > 全部数据来自 LYLNAS 实机（NVIDIA GeForce MX450 / TU117 / CC 7.5 / 14 SM / 1.64 GiB）
 > 环境：torch 2.3.1+cu121，CUDA 12.1，驱动 nvidia-open 580.142
 > 时间：2026-10-19
