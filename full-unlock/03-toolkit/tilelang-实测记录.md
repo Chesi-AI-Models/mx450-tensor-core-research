@@ -1,5 +1,7 @@
 # TileLang 真实试用记录
 
+**简体中文** | [繁體中文](tilelang-实测记录.zh-TW.md) | [English](tilelang-实测记录.en.md)
+
 > 用户要求「必须真跑」。本文是 TileLang 在 MX450 上的完整实测过程，含三次失败与最终成功。
 
 ---

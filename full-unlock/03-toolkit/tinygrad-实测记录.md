@@ -1,5 +1,7 @@
 # tinygrad 真实试用记录（含一个重大测量陷阱）
 
+**简体中文** | [繁體中文](tinygrad-实测记录.zh-TW.md) | [English](tinygrad-实测记录.en.md)
+
 > 用户要求「必须真跑不能从文档判断」。本文是 tinygrad 的实际执行记录。
 >
 > **核心发现：tinygrad 的 lazy 求值会让性能测量产生 23 倍的虚高。**
