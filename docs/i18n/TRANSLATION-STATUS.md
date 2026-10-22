@@ -10,7 +10,7 @@
 ## 总览
 
 - 需翻译文档：**50 篇**，合计 **342 KB**
-- 已完成：**30 篇**（含 1 篇仅英文）（根 `README.md` → `.zh-TW.md` / `.en.md`，已同步最新章节）
+- 已完成：**32 篇**（含 1 篇仅英文）（根 `README.md` → `.zh-TW.md` / `.en.md`，已同步最新章节）
 - 待完成：**49 篇**
 
 ## 优先级分批
@@ -21,10 +21,10 @@
 
 ### 第 2 批（findings 实测记录）
 - [ ] `findings/2026-10-19-nvidia-ko符号级逆向.md` (11 KB)
-- [ ] `findings/2026-10-19-限制机制不在驱动层.md` (10 KB)
+- [x] `findings/2026-10-19-限制机制不在驱动层.md` (10 KB) — zh-TW + en 完成
 - [x] `findings/2026-10-19-iowr地址空间归属判定.md` (8 KB) — zh-TW + en 完成
 - [x] `findings/2026-10-19-Falcon-IO地址空间完整模型.md` (8 KB) — zh-TW + en 完成
-- [ ] `findings/2026-10-19-GPCCS微码与通信机制.md` (8 KB)
+- [x] `findings/2026-10-19-GPCCS微码与通信机制.md` (8 KB) — zh-TW + en 完成
 - [x] `findings/2026-10-19-最终结论-MX450没有TensorCore.md` (7 KB) — zh-TW + en 完成 ★结论文档
 - [x] `findings/2026-10-18-阶段2-GSP固件逆向.md` (7 KB) — zh-TW + en 完成
 - [x] `findings/2026-10-18-阶段1-寄存器调查.md` (5 KB) — zh-TW + en 完成
