@@ -1,5 +1,7 @@
 # GreenBoost 在 MX450 上的完整适配报告
 
+**简体中文** | [繁體中文](greenboost-adaptation.zh-TW.md) | [English](greenboost-adaptation.en.md)
+
 > **结果：物理显存 1.64 GiB，成功分配 8 GiB，且 matmul 结果完全正确。**
 >
 > 这是本项目最有实际价值的成果——它让「2 GB 显存跑 7B QLoRA」从不可能变成可能。
