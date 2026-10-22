@@ -1,5 +1,7 @@
 # T2 加速：实测数据与第一轮优化
 
+**简体中文** | [繁體中文](T2-acceleration-round1.zh-TW.md) | [English](T2-acceleration-round1.en.md)
+
 > 目标：完全彻底加速 GreenBoost 的 T2 层（系统 RAM），覆盖推理与训练全流程。
 >
 > 本轮成果：**发现并修复 headroom 配置缺陷，T2 相关的实际带宽提升 12.1 倍。**

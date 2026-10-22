@@ -1,5 +1,7 @@
 # CMPUnlocker 真实试用记录（实测，非文档推断）
 
+**简体中文** | [繁體中文](cmpunlocker-实测记录.zh-TW.md) | [English](cmpunlocker-实测记录.en.md)
+
 > 用户要求：「必须 git clone 下来真实运行，不能从 README 判断」
 > 本文是对 CMPUnlocker 的**实际执行记录**，含成功与失败。
 
