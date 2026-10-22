@@ -1,5 +1,7 @@
 # D1 GEMM 优化 + D2 锁频实验 —— 完整实测报告
 
+**简体中文** | [繁體中文](D1-GEMM优化与D2锁频实测报告.zh-TW.md) | [English](D1-GEMM优化与D2锁频实测报告.en.md)
+
 日期：2026-10-20
 GPU：NVIDIA GeForce MX450 (TU117)，14 SM，CC 7.5，VRAM 2GB
 驱动：nvidia-open 580.142（GSP 强制启用）
