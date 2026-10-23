@@ -10,7 +10,7 @@
 ## 总览
 
 - 需翻译文档：**50 篇**，合计 **342 KB**
-- 已完成：**48 篇**（含 1 篇仅英文）
+- 已完成：**49 篇**（含 1 篇仅英文）
 - **findings/ 目录：28 篇全部三语完成 ✅**（根 `README.md` → `.zh-TW.md` / `.en.md`，已同步最新章节）
 - 待完成：**49 篇**
 
@@ -53,7 +53,7 @@
 - [x] `findings/2026-10-18-最终状态与明日待办.md` (3 KB) — zh-TW + en 完成
 
 ### 第 3 批（full-unlock 研究报告）
-- [ ] `full-unlock/05-firmware-exploit/任务B-FWSEC测绘报告.md` (15 KB)
+- [x] `full-unlock/05-firmware-exploit/任务B-FWSEC测绘报告.md` (15 KB) — zh-TW + en 完成
 - [x] `full-unlock/01-upstream-analysis/B10-MetaRoCE规范梳理与构建记录.md` (12 KB) — zh-TW + en 完成
 - [x] `full-unlock/01-upstream-analysis/知乎-GPU逆向方法论与TensorCore微架构-归档.md` (10 KB) — zh-TW + en 完成
 - [x] `full-unlock/01-upstream-analysis/B13-shadPS4-GCN转译器真跑记录.md` (8 KB) — zh-TW + en 完成
