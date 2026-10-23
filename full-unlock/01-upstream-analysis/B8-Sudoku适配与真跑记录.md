@@ -1,5 +1,7 @@
 # B8 Sudoku —— 上游代码适配与真跑记录
 
+**简体中文** | [繁體中文](B8-Sudoku适配与真跑记录.zh-TW.md) | [English](B8-Sudoku适配与真跑记录.en.md)
+
 ## 一、项目信息
 
 | 项 | 值 |

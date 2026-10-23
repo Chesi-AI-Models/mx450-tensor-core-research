@@ -10,7 +10,7 @@
 ## 总览
 
 - 需翻译文档：**50 篇**，合计 **342 KB**
-- 已完成：**44 篇**（含 1 篇仅英文）
+- 已完成：**45 篇**（含 1 篇仅英文）
 - **findings/ 目录：28 篇全部三语完成 ✅**（根 `README.md` → `.zh-TW.md` / `.en.md`，已同步最新章节）
 - 待完成：**49 篇**
 
@@ -61,7 +61,7 @@
 - [x] `full-unlock/04-results/T2-acceleration-round1.md` (7 KB) — zh-TW + en 完成
 - [x] `full-unlock/01-upstream-analysis/cmpunlocker-实测记录.md` (6 KB) — zh-TW + en 完成
 - [x] `full-unlock/04-results/D1-GEMM优化与D2锁频实测报告.md` (6 KB) — zh-TW + en 完成
-- [ ] `full-unlock/01-upstream-analysis/B8-Sudoku适配与真跑记录.md` (6 KB)
+- [x] `full-unlock/01-upstream-analysis/B8-Sudoku适配与真跑记录.md` (6 KB) — zh-TW + en 完成
 - [x] `full-unlock/01-upstream-analysis/greenboost-adaptation.md` (5 KB) — zh-TW + en 完成
 - [x] `full-unlock/03-toolkit/tilelang-实测记录.md` (5 KB) — zh-TW + en 完成
 - [x] `full-unlock/03-toolkit/tinygrad-实测记录.md` (5 KB) — zh-TW + en 完成
