@@ -1,5 +1,7 @@
 # findings 索引 —— MX450 逆向实测记录（30 篇，全部三语）
 
+**简体中文** | [繁體中文](README.zh-TW.md) | [English](README.en.md)
+
 > 本目录是 append-only 实测记录。**每一篇都有三个语言版本**：
 
 > - `<名称>.md` —— 简体中文（基准）
