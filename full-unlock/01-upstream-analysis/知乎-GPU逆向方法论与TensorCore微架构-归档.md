@@ -1,5 +1,7 @@
 # 知乎两篇 GPU 逆向方法论文章 —— 摘要归档与对本项目的映射
 
+**简体中文** | [繁體中文](知乎-GPU逆向方法论与TensorCore微架构-归档.zh-TW.md) | [English](知乎-GPU逆向方法论与TensorCore微架构-归档.en.md)
+
 > 来源（2026-10-20 阅读）：
 > ① 《GPU逆向方法总结》 https://zhuanlan.zhihu.com/p/2014778262367250116 （编辑于 2026-03-10）
 > ② 《Tensor Core 微架构深度解析》 https://zhuanlan.zhihu.com/p/2028548125518755193
