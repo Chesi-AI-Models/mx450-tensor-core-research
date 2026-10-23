@@ -10,6 +10,13 @@
 
 ---
 
+![MX450 measured throughput](docs/assets/mx450-throughput.svg)
+
+> The core finding in one chart: **the HMMA path delivers 0.32 TFLOPS versus 5.77 for packed FP16 — an 18× gap.**
+> This is not "the driver is unoptimised" — **Tu117 has no Tensor Core in silicon**. HMMA.884 can only be
+> emulated instruction-by-instruction on the FP16 units, and it cannot co-issue with FP32/INT (it saturates the
+> register ports), so you get neither TC throughput nor scalar pipeline progress.
+
 ## One-line conclusion
 
 **The SM of TU117 contains no Tensor Core. The silicon area where a TC would sit is occupied by FP16 units.**

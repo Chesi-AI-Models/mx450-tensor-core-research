@@ -10,6 +10,12 @@
 
 ---
 
+![MX450 實測吞吐對比](docs/assets/mx450-throughput.svg)
+
+> 一張圖看完核心發現：**HMMA 路徑 0.32 TFLOPS vs FP16 打包 5.77 TFLOPS，差 18 倍。**
+> 這不是「驅動沒優化」，是**矽片上沒有 Tensor Core**——HMMA.884 只能由 FP16 單元逐條模擬，
+> 且無法與 FP32/INT 併發（佔滿暫存器埠），所以既拿不到 TC 吞吐又阻塞純量管線。
+
 ## 一句話結論
 
 **TU117 的 SM 裡沒有 Tensor Core。原本放 TC 的位置是 FP16 單元。**

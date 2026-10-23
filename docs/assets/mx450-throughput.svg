@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="530" viewBox="0 0 920 530" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+<rect width="920" height="530" fill="#ffffff"/>
+<text x="40" y="44" font-size="23" font-weight="700" fill="#1a1a1a">MX450 (TU117) 实测吞吐：HMMA 路径为何慢 18 倍</text>
+<text x="40" y="70" font-size="13.5" fill="#5a5a5a">本仓库在 LYLNAS 实机（i7-1165G7 + MX450 / TU117 / sm_75 / 2GB）的全部为实测值，非估算</text>
+<line x1="40" y1="84" x2="880" y2="84" stroke="#e2e2e2"/>
+<line x1="344" y1="106" x2="344" y2="446" stroke="#efefef"/>
+<line x1="448" y1="106" x2="448" y2="446" stroke="#efefef"/>
+<line x1="552" y1="106" x2="552" y2="446" stroke="#efefef"/>
+<line x1="656" y1="106" x2="656" y2="446" stroke="#efefef"/>
+<line x1="760" y1="106" x2="760" y2="446" stroke="#efefef"/>
+<line x1="240" y1="106" x2="240" y2="446" stroke="#cfcfcf"/>
+<rect x="240" y="114" width="600" height="46" rx="3" fill="#4c9a5e"/>
+<text x="230" y="143" font-size="13.5" text-anchor="end" fill="#1a1a1a" font-weight="600">FP16x2 打包峰值</text>
+<text x="830" y="143" font-size="15" text-anchor="end" fill="#ffffff" font-weight="700">5.77</text>
+<rect x="240" y="182" width="255" height="46" rx="3" fill="#9aa0a6"/>
+<text x="230" y="211" font-size="13.5" text-anchor="end" fill="#1a1a1a" font-weight="600">FP32 理论峰值</text>
+<text x="485" y="211" font-size="15" text-anchor="end" fill="#1a1a1a" font-weight="700">2.45</text>
+<rect x="240" y="250" width="214" height="46" rx="3" fill="#3b74c4"/>
+<text x="230" y="279" font-size="13.5" text-anchor="end" fill="#1a1a1a" font-weight="600">cuBLAS FP32</text>
+<text x="444" y="279" font-size="15" text-anchor="end" fill="#1a1a1a" font-weight="700">2.06</text>
+<rect x="240" y="318" width="182" height="46" rx="3" fill="#2a9d8f"/>
+<text x="230" y="347" font-size="13.5" text-anchor="end" fill="#1a1a1a" font-weight="600">自研 FFMA GEMM</text>
+<text x="412" y="347" font-size="15" text-anchor="end" fill="#1a1a1a" font-weight="700">1.75</text>
+<rect x="240" y="386" width="33" height="46" rx="3" fill="#c0392b"/>
+<text x="230" y="415" font-size="13.5" text-anchor="end" fill="#c0392b" font-weight="700">cuBLAS FP16 (HMMA)</text>
+<text x="281" y="415" font-size="15" fill="#c0392b" font-weight="700">0.32</text>
+<g font-size="12" fill="#8a8a8a" text-anchor="middle">
+<text x="240" y="466">0</text>
+<text x="344" y="466">1.0</text>
+<text x="448" y="466">2.0</text>
+<text x="552" y="466">3.0</text>
+<text x="656" y="466">4.0</text>
+<text x="760" y="466">5.0</text>
+<text x="840" y="466">TFLOPS</text>
+</g>
+<rect x="40" y="480" width="840" height="38" rx="5" fill="#fdecea" stroke="#f5b7b1"/>
+<text x="54" y="497" font-size="12.8" fill="#a93226" font-weight="700">核心结论：TU117 无物理 Tensor Core</text>
+<text x="54" y="512" font-size="12.3" fill="#a93226">HMMA.884 只能由 FP16 单元逐条模拟，且无法与 FP32/INT 并发 → 5.77 降到 0.32，损失 18 倍。任何走 HMMA 的库（cuBLAS fp16 / Triton / TileLang）都撞同一堵墙。</text>
+</svg>
