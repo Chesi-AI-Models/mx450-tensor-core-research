@@ -8,6 +8,8 @@
 >
 > **状态：结论已闭合 · 全部实测可复现**
 
+> **许可**：本仓库采用 **MIT License**（完整文本见 `LICENSE`，其中含 NVIDIA 商标声明与独立研究免责声明）。
+
 ---
 
 ![MX450 实测吞吐对比](docs/assets/mx450-throughput.svg)
