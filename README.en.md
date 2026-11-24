@@ -10,7 +10,7 @@
 
 ---
 
-![MX450 measured throughput](docs/assets/mx450-throughput.svg)
+![MX450 measured throughput](docs/assets/mx450-throughput.en.svg)
 
 > The core finding in one chart: **the HMMA path delivers 0.32 TFLOPS versus 5.77 for packed FP16 — an 18× gap.**
 > This is not "the driver is unoptimised" — **Tu117 has no Tensor Core in silicon**. HMMA.884 can only be

@@ -10,7 +10,7 @@
 
 ---
 
-![MX450 實測吞吐對比](docs/assets/mx450-throughput.svg)
+![MX450 實測吞吐對比](docs/assets/mx450-throughput.zh-TW.svg)
 
 > 一張圖看完核心發現：**HMMA 路徑 0.32 TFLOPS vs FP16 打包 5.77 TFLOPS，差 18 倍。**
 > 這不是「驅動沒優化」，是**矽片上沒有 Tensor Core**——HMMA.884 只能由 FP16 單元逐條模擬，
